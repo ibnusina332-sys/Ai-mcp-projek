@@ -115,7 +115,7 @@
     {id:'allcoins',name:'Kaya Raya',desc:'Kutip semua syiling dalam satu level'},
     {id:'lvl3',name:'Separuh Jalan',desc:'Siapkan level 3'},
     {id:'lvl5',name:'Juara Kucing',desc:'Tamatkan semua 5 level'},
-    {id:'perfect',name:'Nyawa Penuh',desc:'Tamatkan game dengan 3 nyawa'}
+    {id:'perfect',name:'Nyawa Penuh',desc:'Tamatkan game dengan 5 nyawa'}
   ];
   var got={},stats={coins:0,stomps:0},toasts=[],showAch=false;
   try{
@@ -142,7 +142,7 @@
     enemies=enemyDef.map(function(e){return {x:e[0],y:GROUND-24,w:30,h:24,min:e[1],max:e[2],dir:1,dead:false};});
     levelCoins=0;levelLost=0;
   }
-  function newGame(){loadLevel(0);build();placePlayer();score=0;lives=3;setState('play');}
+  function newGame(){loadLevel(0);build();placePlayer();score=0;lives=5;setState('play');}
   function nextLevel(){loadLevel(levelIdx+1);build();placePlayer();setState('play');}
   newGame();
 
@@ -163,7 +163,7 @@
     if(levelIdx>=2)unlock('lvl3');
     if(levelIdx===LAST){
       unlock('lvl5');
-      if(lives===3)unlock('perfect');
+      if(lives===5)unlock('perfect');
       setState('win');
     }else setState('next');
   }
@@ -335,7 +335,7 @@
     if(state!=='over')drawCat(p.x,p.y,p.face,Math.abs(p.vx)>0,!p.ground);
     ctx.restore();
 
-    ctx.fillStyle='rgba(0,0,0,.4)';ctx.fillRect(8,8,330,34);
+    ctx.fillStyle='rgba(0,0,0,.4)';ctx.fillRect(8,8,372,34);
     ctx.fillStyle='#fff';ctx.font='bold 18px system-ui';ctx.textBaseline='middle';ctx.textAlign='left';
     ctx.fillText('Level '+(levelIdx+1)+'/5',18,25);
     ctx.fillText('Skor: '+score,115,25);
