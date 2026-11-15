@@ -9,11 +9,12 @@
   html,body{margin:0;height:100%;background:#1e2a44;font-family:system-ui,sans-serif;color:#fff;overflow:hidden}
   #wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;padding:8px;gap:10px}
   canvas{width:100%;max-width:900px;aspect-ratio:16/9;background:#8fd3ff;border-radius:12px;touch-action:none}
-  #pad{display:flex;justify-content:space-between;width:100%;max-width:900px;gap:12px}
-  .grp{display:flex;gap:12px}
-  button{width:84px;height:68px;border:0;border-radius:16px;font-size:30px;background:#ffd166;color:#3a2a00;touch-action:none;box-shadow:0 4px 0 #c99a2e}
+  #pad{display:flex;justify-content:space-between;align-items:center;width:100%;max-width:900px;gap:10px}
+  .grp{display:flex;gap:10px}
+  button{width:78px;height:68px;border:0;border-radius:16px;font-size:30px;background:#ffd166;color:#3a2a00;touch-action:none;box-shadow:0 4px 0 #c99a2e}
   button:active,button.on{transform:translateY(3px);box-shadow:0 1px 0 #c99a2e}
-  #jump{width:130px;background:#ff8fab;box-shadow:0 4px 0 #c9607c;color:#4a0f22;font-size:22px}
+  #jump{width:120px;background:#ff8fab;box-shadow:0 4px 0 #c9607c;color:#4a0f22;font-size:22px}
+  #trophy{width:60px;height:56px;font-size:26px;background:#cdb4ff;box-shadow:0 4px 0 #8f74c9}
   #hint{font-size:13px;opacity:.75;text-align:center}
 </style>
 </head>
@@ -22,9 +23,10 @@
   <canvas id="c" width="800" height="450"></canvas>
   <div id="pad">
     <div class="grp"><button id="left" aria-label="Kiri">◀</button><button id="right" aria-label="Kanan">▶</button></div>
+    <button id="trophy" aria-label="Pencapaian">🏆</button>
     <button id="jump" aria-label="Lompat">Lompat</button>
   </div>
-  <div id="hint">Kutip duit syiling, pijak musuh, sampai ke ikan di hujung. Papan kekunci: ← → dan Space.</div>
+  <div id="hint">5 level. Kutip syiling, pijak musuh, sampai ke ikan. Tekan 🏆 untuk lihat pencapaian. Papan kekunci: ← → Space, T.</div>
 </div>
 <script>
 (function(){
@@ -32,24 +34,51 @@
   var W=800,H=450,GROUND=390;
   var GRAV=0.6,JUMP=-13.2,SPEED=4.2;
 
+  /* ---------- levels ---------- */
+  function rng(seed){return function(){seed=(seed*16807)%2147483647;return (seed-1)/2147483646;};}
+  function genLevel(seed,segs,gap,speed,theme){
+    var r=rng(seed),grounds=[],floats=[],coins=[],enemies=[],x=0,i;
+    for(i=0;i<segs;i++){
+      var len=i===0?520:(i===segs-1?700:380+Math.floor(r()*260));
+      grounds.push([x,x+len]);
+      if(i>0&&len>=420&&r()<0.85){
+        var fx=Math.round(x+70+r()*(len-340)),fy=r()<0.5?300:290;
+        floats.push([fx,fy,110]);coins.push([fx+55,fy-34]);
+        floats.push([fx+150,220,100]);coins.push([fx+200,186]);
+      }
+      coins.push([x+len*0.3,GROUND-46],[x+len*0.55,GROUND-46]);
+      if(i>0){
+        enemies.push([Math.round(x+len*0.5),x+40,x+len-40]);
+        if(len>=560&&speed>=2.2)enemies.push([Math.round(x+len*0.8),x+len*0.6,x+len-20]);
+      }
+      if(i<segs-1)coins.push([x+len+gap/2,262]);
+      x+=len+gap;
+    }
+    return {world:x-gap,speed:speed,theme:theme,grounds:grounds,floats:floats,
+            coins:coins.map(function(c){return [Math.round(c[0]),c[1]];}),enemies:enemies};
+  }
   var LEVELS=[
-    {world:3300,speed:1.3,sky:['#7ec8ff','#d9f2ff'],
+    {world:3300,speed:1.3,theme:{sky:['#7ec8ff','#d9f2ff'],hill:'#a8e6a1',grass:'#5cb85c'},
      grounds:[[0,720],[850,1450],[1580,2080],[2210,2650],[2780,3300]],
      floats:[[300,300,120],[500,230,100],[1000,300,140],[1250,240,100],[1750,300,120],[1950,240,100],[2400,300,140],[2900,280,120]],
      coins:[[330,260],[540,190],[650,340],[785,250],[900,340],[1050,260],[1290,200],[1400,340],[1515,260],
             [1620,340],[1790,260],[1990,200],[2145,250],[2300,340],[2440,260],[2715,250],[2940,240],[3050,340]],
      enemies:[[400,300,650],[1000,900,1400],[1700,1600,2050],[2300,2220,2600],[2900,2800,3200]]},
-    {world:3800,speed:1.8,sky:['#ffb88c','#ffe5d0'],
+    {world:3800,speed:1.8,theme:{sky:['#ffb88c','#ffe5d0'],hill:'#e3b57a',grass:'#d9a441'},
      grounds:[[0,500],[640,1000],[1140,1400],[1540,1900],[2040,2300],[2440,2900],[3040,3800]],
      floats:[[250,300,110],[700,290,120],[850,220,100],[1180,300,100],[1600,290,120],[1750,220,100],[2080,300,120],[2500,290,120],[2650,220,100],[3100,300,140],[3300,230,110]],
      coins:[[280,260],[560,330],[730,250],[880,180],[1070,330],[1210,260],[1470,330],[1630,250],[1780,180],[1970,330],
             [2110,260],[2370,330],[2530,250],[2680,180],[2970,330],[3130,260],[3330,190],[3500,340]],
-     enemies:[[300,200,480],[700,650,980],[1200,1150,1390],[1600,1550,1890],[2100,2050,2290],[2550,2450,2890],[3200,3050,3500]]}
+     enemies:[[300,200,480],[700,650,980],[1200,1150,1390],[1600,1550,1890],[2100,2050,2290],[2550,2450,2890],[3200,3050,3500]]},
+    genLevel(33,8,140,2.1,{sky:['#9be7c4','#e6fff3'],hill:'#7fd1ae',grass:'#2e9e6a'}),
+    genLevel(44,9,145,2.4,{sky:['#2b3a67','#7a8bbd'],hill:'#4a5a8a',grass:'#6c7fc4'}),
+    genLevel(55,10,150,2.8,{sky:['#3a1c4a','#d07a95'],hill:'#8a4a6a',grass:'#e07a9a'})
   ];
+  var LAST=LEVELS.length-1;
 
-  var WORLD,plats,coinPos,enemyDef,goal,sky,eSpeed,levelIdx=0;
+  var WORLD,plats,coinPos,enemyDef,goal,theme,eSpeed,levelIdx=0;
   function loadLevel(i){
-    var L=LEVELS[i];levelIdx=i;WORLD=L.world;sky=L.sky;eSpeed=L.speed;
+    var L=LEVELS[i];levelIdx=i;WORLD=L.world;theme=L.theme;eSpeed=L.speed;
     plats=[];
     L.grounds.forEach(function(g){plats.push({x:g[0],y:GROUND,w:g[1]-g[0],h:60,g:true});});
     L.floats.forEach(function(f){plats.push({x:f[0],y:f[1],w:f[2],h:16,g:false});});
@@ -57,14 +86,14 @@
     goal={x:WORLD-120,y:GROUND-44,w:44,h:44};
   }
 
-  // sound
+  /* ---------- sound ---------- */
   var AC=null;
   function snd(type){
     try{
       if(!AC)AC=new (window.AudioContext||window.webkitAudioContext)();
       if(AC.state==='suspended')AC.resume();
       var cfg={jump:[300,600,.12,'square'],coin:[880,1320,.1,'square'],stomp:[220,90,.15,'sawtooth'],
-               hurt:[300,70,.35,'sawtooth'],win:[500,1100,.5,'triangle']}[type];
+               hurt:[300,70,.35,'sawtooth'],win:[500,1100,.5,'triangle'],ach:[600,1300,.3,'triangle']}[type];
       var o=AC.createOscillator(),g=AC.createGain(),now=AC.currentTime;
       o.type=cfg[3];o.connect(g);g.connect(AC.destination);
       o.frequency.setValueAtTime(cfg[0],now);
@@ -75,14 +104,43 @@
     }catch(e){}
   }
 
+  /* ---------- achievements ---------- */
+  var ACH=[
+    {id:'coin1',name:'Duit Pertama',desc:'Kutip 1 syiling'},
+    {id:'coin100',name:'Pemburu Syiling',desc:'Kutip 100 syiling'},
+    {id:'stomp1',name:'Pijak!',desc:'Pijak musuh pertama'},
+    {id:'stomp25',name:'Pembasmi',desc:'Pijak 25 musuh'},
+    {id:'fall',name:'Terjun Bebas',desc:'Jatuh ke dalam jurang'},
+    {id:'clean',name:'Tanpa Calar',desc:'Siapkan level tanpa hilang nyawa'},
+    {id:'allcoins',name:'Kaya Raya',desc:'Kutip semua syiling dalam satu level'},
+    {id:'lvl3',name:'Separuh Jalan',desc:'Siapkan level 3'},
+    {id:'lvl5',name:'Juara Kucing',desc:'Tamatkan semua 5 level'},
+    {id:'perfect',name:'Nyawa Penuh',desc:'Tamatkan game dengan 3 nyawa'}
+  ];
+  var got={},stats={coins:0,stomps:0},toasts=[],showAch=false;
+  try{
+    var sg=JSON.parse(localStorage.getItem('kucing_ach')||'{}');if(sg&&typeof sg==='object')got=sg;
+    var ss=JSON.parse(localStorage.getItem('kucing_stats')||'{}');
+    if(ss&&typeof ss==='object'){stats.coins=+ss.coins||0;stats.stomps=+ss.stomps||0;}
+  }catch(e){}
+  function save(){try{localStorage.setItem('kucing_ach',JSON.stringify(got));localStorage.setItem('kucing_stats',JSON.stringify(stats));}catch(e){}}
+  function unlock(id){
+    if(got[id])return;
+    got[id]=1;save();snd('ach');
+    var a=ACH.filter(function(x){return x.id===id;})[0];
+    toasts.push({text:a.name,until:t+220});
+  }
+
+  /* ---------- game state ---------- */
   var keys={left:false,right:false,jump:false};
-  var p,coins,enemies,score,lives,state,camX,t=0,stateAt=0;
+  var p,coins,enemies,score,lives,state,camX,t=0,stateAt=0,levelCoins=0,levelLost=0;
 
   function setState(s){state=s;stateAt=Date.now();}
   function placePlayer(){p={x:60,y:300,w:34,h:30,vx:0,vy:0,face:1,ground:false};camX=0;}
   function build(){
     coins=coinPos.map(function(c){return {x:c[0],y:c[1],got:false};});
     enemies=enemyDef.map(function(e){return {x:e[0],y:GROUND-24,w:30,h:24,min:e[1],max:e[2],dir:1,dead:false};});
+    levelCoins=0;levelLost=0;
   }
   function newGame(){loadLevel(0);build();placePlayer();score=0;lives=3;setState('play');}
   function nextLevel(){loadLevel(levelIdx+1);build();placePlayer();setState('play');}
@@ -92,14 +150,27 @@
 
   function loseLife(){
     snd('hurt');
-    lives--;
+    lives--;levelLost++;
     if(lives<=0){setState('over');return;}
     placePlayer();
   }
 
+  function finishLevel(){
+    score+=lives*100;
+    snd('win');
+    if(levelLost===0)unlock('clean');
+    if(levelCoins>=coinPos.length)unlock('allcoins');
+    if(levelIdx>=2)unlock('lvl3');
+    if(levelIdx===LAST){
+      unlock('lvl5');
+      if(lives===3)unlock('perfect');
+      setState('win');
+    }else setState('next');
+  }
+
   function update(){
     t++;
-    if(state!=='play')return;
+    if(state!=='play'||showAch)return;
     var dir=(keys.right?1:0)-(keys.left?1:0);
     p.vx=dir*SPEED;
     if(dir)p.face=dir;
@@ -123,10 +194,14 @@
         else if(p.vy<0&&!s.g&&prevBottom>s.y+s.h){p.y=s.y+s.h;p.vy=0;}
       }
     });
-    if(p.y>H+60){loseLife();return;}
+    if(p.y>H+60){unlock('fall');loseLife();return;}
 
     coins.forEach(function(c){
-      if(!c.got&&Math.abs(c.x-(p.x+p.w/2))<22&&Math.abs(c.y-(p.y+p.h/2))<24){c.got=true;score+=10;snd('coin');}
+      if(!c.got&&Math.abs(c.x-(p.x+p.w/2))<22&&Math.abs(c.y-(p.y+p.h/2))<24){
+        c.got=true;score+=10;snd('coin');
+        levelCoins++;stats.coins++;save();
+        unlock('coin1');if(stats.coins>=100)unlock('coin100');
+      }
     });
 
     enemies.forEach(function(e){
@@ -135,19 +210,23 @@
       if(e.x<e.min){e.x=e.min;e.dir=1;}
       if(e.x+e.w>e.max){e.x=e.max-e.w;e.dir=-1;}
       if(hit(p,e)){
-        if(p.vy>0&&p.y+p.h-p.vy<=e.y+10){e.dead=true;p.vy=-9;score+=50;snd('stomp');}
-        else{loseLife();}
+        if(p.vy>0&&p.y+p.h-p.vy<=e.y+10){
+          e.dead=true;p.vy=-9;score+=50;snd('stomp');
+          stats.stomps++;save();
+          unlock('stomp1');if(stats.stomps>=25)unlock('stomp25');
+        }else loseLife();
       }
     });
 
-    if(state==='play'&&hit(p,goal)){
-      score+=lives*100;
-      snd('win');
-      setState(levelIdx<LEVELS.length-1?'next':'win');
-    }
+    if(state==='play'&&hit(p,goal))finishLevel();
     camX=Math.max(0,Math.min(WORLD-W,p.x-300));
   }
 
+  /* ---------- drawing ---------- */
+  function rr(x,y,w,h,r){
+    ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);
+    ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();
+  }
   function cloud(x,y,s){
     ctx.beginPath();
     ctx.arc(x,y,20*s,0,7);ctx.arc(x+22*s,y-8*s,24*s,0,7);ctx.arc(x+48*s,y,20*s,0,7);ctx.fill();
@@ -193,20 +272,46 @@
     ctx.restore();
   }
 
+  function drawAchievements(){
+    ctx.fillStyle='rgba(15,20,45,.92)';ctx.fillRect(0,0,W,H);
+    ctx.fillStyle='#fff';ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.font='bold 26px system-ui';
+    var n=ACH.filter(function(a){return got[a.id];}).length;
+    ctx.fillText('🏆 Pencapaian  '+n+'/'+ACH.length,W/2,28);
+    ctx.font='14px system-ui';ctx.fillStyle='#bcc6e8';
+    ctx.fillText('Syiling dikutip: '+stats.coins+'   Musuh dipijak: '+stats.stomps,W/2,54);
+    ctx.textAlign='left';
+    ACH.forEach(function(a,i){
+      var col=i%2,row=Math.floor(i/2),x=30+col*385,y=74+row*68;
+      var ok=!!got[a.id];
+      ctx.fillStyle=ok?'rgba(255,209,102,.2)':'rgba(255,255,255,.07)';
+      rr(x,y,360,58,10);ctx.fill();
+      ctx.font='24px system-ui';ctx.fillStyle='#fff';
+      ctx.fillText(ok?'🏅':'🔒',x+12,y+30);
+      ctx.font='bold 16px system-ui';ctx.fillStyle=ok?'#ffd166':'#8d97bb';
+      ctx.fillText(a.name,x+54,y+20);
+      ctx.font='13px system-ui';ctx.fillStyle=ok?'#fff':'#8d97bb';
+      ctx.fillText(a.desc,x+54,y+41);
+    });
+    ctx.textAlign='center';ctx.font='14px system-ui';ctx.fillStyle='#bcc6e8';
+    ctx.fillText('Tekan 🏆 untuk tutup',W/2,H-14);
+    ctx.textAlign='left';
+  }
+
   function draw(){
-    var g=ctx.createLinearGradient(0,0,0,H);g.addColorStop(0,sky[0]);g.addColorStop(1,sky[1]);
+    var g=ctx.createLinearGradient(0,0,0,H);g.addColorStop(0,theme.sky[0]);g.addColorStop(1,theme.sky[1]);
     ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
-    ctx.fillStyle='rgba(255,255,255,.85)';
+    ctx.fillStyle='rgba(255,255,255,.8)';
     for(var i=0;i<8;i++)cloud(((i*520)-camX*0.3)%(W+200)-60,70+(i%3)*45,1);
-    ctx.fillStyle=levelIdx===0?'#a8e6a1':'#e3b57a';
-    for(var h=0;h<12;h++){var hx=h*420-camX*0.5;ctx.beginPath();ctx.arc(hx,GROUND+20,150,Math.PI,0);ctx.fill();}
+    ctx.fillStyle=theme.hill;
+    for(var h=0;h<14;h++){var hx=h*420-camX*0.5;ctx.beginPath();ctx.arc(hx,GROUND+20,150,Math.PI,0);ctx.fill();}
 
     ctx.save();ctx.translate(-camX,0);
     plats.forEach(function(s){
       if(s.x+s.w<camX-10||s.x>camX+W+10)return;
       if(s.g){
         ctx.fillStyle='#8b5a2b';ctx.fillRect(s.x,s.y,s.w,s.h);
-        ctx.fillStyle=levelIdx===0?'#5cb85c':'#d9a441';ctx.fillRect(s.x,s.y,s.w,12);
+        ctx.fillStyle=theme.grass;ctx.fillRect(s.x,s.y,s.w,12);
       }else{
         ctx.fillStyle='#c98a4b';ctx.fillRect(s.x,s.y,s.w,s.h);
         ctx.fillStyle='#e7b06f';ctx.fillRect(s.x,s.y,s.w,5);
@@ -230,32 +335,42 @@
     if(state!=='over')drawCat(p.x,p.y,p.face,Math.abs(p.vx)>0,!p.ground);
     ctx.restore();
 
-    ctx.fillStyle='rgba(0,0,0,.35)';ctx.fillRect(8,8,330,34);
-    ctx.fillStyle='#fff';ctx.font='bold 18px system-ui';ctx.textBaseline='middle';
-    ctx.fillText('Level '+(levelIdx+1),18,25);
-    ctx.fillText('Skor: '+score,100,25);
-    ctx.fillText('Nyawa: '+'♥'.repeat(Math.max(lives,0)),215,25);
+    ctx.fillStyle='rgba(0,0,0,.4)';ctx.fillRect(8,8,330,34);
+    ctx.fillStyle='#fff';ctx.font='bold 18px system-ui';ctx.textBaseline='middle';ctx.textAlign='left';
+    ctx.fillText('Level '+(levelIdx+1)+'/5',18,25);
+    ctx.fillText('Skor: '+score,115,25);
+    ctx.fillText('Nyawa: '+'♥'.repeat(Math.max(lives,0)),225,25);
+
+    toasts=toasts.filter(function(a){return a.until>t;});
+    toasts.forEach(function(a,i){
+      var y=52+i*44;
+      ctx.fillStyle='rgba(255,209,102,.95)';rr(W/2-150,y,300,38,12);ctx.fill();
+      ctx.fillStyle='#3a2a00';ctx.font='bold 16px system-ui';ctx.textAlign='center';
+      ctx.fillText('🏅 Pencapaian: '+a.text,W/2,y+19);ctx.textAlign='left';
+    });
 
     if(state!=='play'){
       ctx.fillStyle='rgba(20,30,60,.7)';ctx.fillRect(0,0,W,H);
       ctx.fillStyle='#fff';ctx.textAlign='center';
-      ctx.font='bold 38px system-ui';
-      var title=state==='win'?'Hebat! Semua level siap! 🐟':state==='next'?'Level siap! 🎉':'Tamat permainan';
+      ctx.font='bold 36px system-ui';
+      var title=state==='win'?'Hebat! Semua 5 level siap! 🐟':state==='next'?'Level '+(levelIdx+1)+' siap! 🎉':'Tamat permainan';
       ctx.fillText(title,W/2,H/2-30);
       ctx.font='22px system-ui';
       ctx.fillText('Skor: '+score,W/2,H/2+15);
       ctx.fillText(state==='next'?'Tekan Lompat untuk level seterusnya':'Tekan Lompat untuk main semula',W/2,H/2+55);
       ctx.textAlign='left';
     }
+    if(showAch)drawAchievements();
   }
 
   function loop(){update();draw();requestAnimationFrame(loop);}
 
   function advance(){
-    if(state==='play'||Date.now()-stateAt<600)return;
+    if(showAch||state==='play'||Date.now()-stateAt<600)return;
     if(state==='next')nextLevel();else newGame();
   }
 
+  /* ---------- controls ---------- */
   function bind(id,k){
     var el=document.getElementById(id);
     function on(e){e.preventDefault();if(k==='jump')advance();keys[k]=true;el.classList.add('on');}
@@ -267,9 +382,13 @@
     el.addEventListener('contextmenu',function(e){e.preventDefault();});
   }
   bind('left','left');bind('right','right');bind('jump','jump');
+  document.getElementById('trophy').addEventListener('pointerdown',function(e){
+    e.preventDefault();showAch=!showAch;keys.left=keys.right=keys.jump=false;
+  });
 
   var map={ArrowLeft:'left',ArrowRight:'right',ArrowUp:'jump',' ':'jump',a:'left',d:'right',w:'jump'};
   window.addEventListener('keydown',function(e){
+    if(e.key==='t'||e.key==='T'){showAch=!showAch;return;}
     var k=map[e.key];if(!k)return;e.preventDefault();
     if(k==='jump')advance();
     keys[k]=true;
