@@ -1,0 +1,373 @@
+<!doctype html>
+<html lang="ms">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>Buku Pembeli</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Figtree:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap">
+<script>
+/* ====== TETAPAN ======
+   Tampal URL Web App Google Apps Script anda di bawah (lihat PANDUAN.md).
+   Jika dibiarkan kosong, data hanya disimpan dalam pelayar (browser) peranti ini. */
+window.BUKU_PEMBELI_API = "";
+</script>
+<style>
+:root{
+  --bg:#f3f5f9; --surface:#ffffff; --ink:#151b2b; --muted:#5d667c; --line:#d9dee9;
+  --accent:#2747c9; --accent-ink:#ffffff; --accent-soft:#e6ebfb; --danger:#c43131; --ok:#1d7a4a;
+  --mark:#fff0a8;
+  --f-display:"Bricolage Grotesque",ui-sans-serif,system-ui,sans-serif;
+  --f-body:"Figtree",ui-sans-serif,system-ui,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){:root{
+  --bg:#0f1320; --surface:#171d2e; --ink:#e8ecf6; --muted:#9aa3b9; --line:#2a3249;
+  --accent:#7d95ff; --accent-ink:#0f1320; --accent-soft:#1f2948; --danger:#ff7a7a; --ok:#5fd39a;
+  --mark:#5a4d10; color-scheme:dark}}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.5}
+.wrap{max-width:760px;margin:0 auto;padding-block:28px 60px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  display:flex;flex-direction:column;gap:20px}
+header{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap}
+h1{font-family:var(--f-display);font-weight:700;font-size:2rem;line-height:1.1;margin:0;text-wrap:balance}
+.sub{color:var(--muted);margin:4px 0 0}
+.meta{display:flex;align-items:center;gap:10px}
+.count{font-family:var(--f-mono);font-size:.8rem;color:var(--muted);letter-spacing:.04em;text-transform:uppercase}
+.linkbtn{background:none;border:0;padding:0;color:var(--muted);font-size:.85rem;text-decoration:underline;font-weight:500}
+button{font:inherit;cursor:pointer;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:9px 14px;font-weight:600}
+button:hover{border-color:var(--accent)}
+.linkbtn:hover{color:var(--ink)}
+button:focus-visible,input:focus-visible,textarea:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+button.danger{color:var(--danger)}
+button.danger.solid{background:var(--danger);color:var(--surface);border-color:var(--danger)}
+button:disabled{opacity:.5;cursor:not-allowed}
+.toolbar{display:flex;gap:10px;flex-wrap:wrap}
+.search{flex:1 1 260px;position:relative;min-width:0}
+.search input{width:100%;padding:12px 14px 12px 40px;font:inherit;font-size:1rem;border-radius:12px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink)}
+.search input:focus{border-color:var(--accent);outline:none}
+.search svg{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--muted)}
+form.panel{background:var(--surface);border:1.5px solid var(--accent);border-radius:14px;padding:18px;display:grid;gap:12px}
+form.panel h2{font-family:var(--f-display);font-size:1.15rem;margin:0}
+label{display:grid;gap:4px;font-weight:600;font-size:.88rem;min-width:0}
+label span.opt{font-weight:400;color:var(--muted)}
+input,textarea{font:inherit;font-size:16px;padding:10px 12px;border-radius:9px;border:1px solid var(--line);background:var(--bg);color:var(--ink);width:100%;min-width:0}
+textarea{resize:vertical;min-height:76px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:540px){.row2{grid-template-columns:1fr}}
+.actions{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
+.err{color:var(--danger);font-size:.88rem;margin:0}
+.list{display:grid;gap:12px}
+.label{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;min-width:0}
+.label:hover{border-color:var(--accent)}
+.label .strip{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 14px;border-bottom:1px dashed var(--line);
+  font-family:var(--f-mono);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.label .body{padding:12px 14px 14px;display:grid;gap:6px}
+.name{font-family:var(--f-display);font-weight:600;font-size:1.2rem;margin:0;overflow-wrap:anywhere}
+.addr{white-space:pre-line;margin:0;overflow-wrap:anywhere}
+.phone{font-family:var(--f-mono);font-size:.95rem;font-variant-numeric:tabular-nums}
+.note{color:var(--muted);font-size:.9rem;margin:0;overflow-wrap:anywhere}
+.btns{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.btns button,.btns a{padding:6px 11px;font-size:.85rem;border-radius:8px}
+.btns a{font-weight:600;text-decoration:none;color:var(--ok);border:1px solid var(--line);background:var(--surface)}
+.btns a:hover{border-color:var(--ok)}
+mark{background:var(--mark);color:inherit;border-radius:3px;padding:0 1px}
+.empty{border:1.5px dashed var(--line);border-radius:14px;padding:28px 20px;text-align:center;color:var(--muted)}
+.empty strong{display:block;color:var(--ink);font-family:var(--f-display);font-size:1.1rem;margin-bottom:4px}
+.notice{background:var(--accent-soft);border-radius:10px;padding:10px 14px;font-size:.9rem}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(20px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);
+  padding:10px 16px;border-radius:10px;font-weight:600;font-size:.9rem;z-index:20}
+.confirm{display:flex;gap:6px;align-items:center;flex-wrap:wrap;font-size:.85rem;color:var(--danger);font-weight:600}
+.login{max-width:380px;margin:8vh auto 0;width:100%}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Buku Pembeli</h1>
+      <p class="sub">Simpan nama, alamat dan no. telefon pembeli. Cari semula bila perlu.</p>
+    </div>
+    <div class="meta">
+      <span class="count" id="count"></span>
+      <button type="button" class="linkbtn" id="logoutBtn" hidden>Log keluar</button>
+    </div>
+  </header>
+
+  <form class="panel login" id="loginForm" hidden novalidate>
+    <h2>Masuk</h2>
+    <label for="l-pass">Kata laluan
+      <input id="l-pass" type="password" autocomplete="current-password" required>
+    </label>
+    <p class="err" id="loginErr" hidden></p>
+    <div class="actions"><button type="submit" class="primary" id="loginBtn">Masuk</button></div>
+  </form>
+
+  <div id="app" hidden>
+    <div class="wrap" style="padding:0;max-width:none">
+      <div class="toolbar">
+        <div class="search">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          <input id="q" type="search" placeholder="Cari nama, no. telefon, alamat atau tarikh…" aria-label="Cari pembeli" autocomplete="off">
+        </div>
+        <button class="primary" id="addBtn" type="button">+ Tambah pembeli</button>
+      </div>
+
+      <div id="notice" class="notice" hidden></div>
+
+      <form class="panel" id="form" hidden novalidate>
+        <h2 id="formTitle">Pembeli baru</h2>
+        <label for="f-name">Nama
+          <input id="f-name" autocomplete="off" required maxlength="120">
+        </label>
+        <div class="row2">
+          <label for="f-phone">No. telefon
+            <input id="f-phone" type="tel" inputmode="tel" placeholder="cth. 012-345 6789" autocomplete="off" required maxlength="30">
+          </label>
+          <label for="f-date">Tarikh beli
+            <input id="f-date" type="date">
+          </label>
+        </div>
+        <label for="f-addr">Alamat
+          <textarea id="f-addr" placeholder="No. rumah, jalan, taman&#10;Poskod, bandar, negeri" required maxlength="600"></textarea>
+        </label>
+        <label for="f-note">Catatan <span class="opt">(pilihan, cth. barang dibeli)</span>
+          <input id="f-note" autocomplete="off" maxlength="300">
+        </label>
+        <p class="err" id="formErr" hidden></p>
+        <div class="actions">
+          <button type="button" id="cancelBtn">Batal</button>
+          <button type="submit" class="primary" id="saveBtn">Simpan</button>
+        </div>
+      </form>
+
+      <div id="list" class="list"></div>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+(function(){
+  "use strict";
+  const API=(window.BUKU_PEMBELI_API||"").trim();
+  const PASS_KEY="bukuPembeli.pass", LOCAL_KEY="bukuPembeli.rows.v1";
+  const $=s=>document.querySelector(s);
+  const listEl=$("#list"), countEl=$("#count"), qEl=$("#q"), form=$("#form"), noticeEl=$("#notice");
+  let rows=[], editingId=null, confirmId=null, pass="", busy=false;
+
+  /* ---------- storan ---------- */
+  const ls={
+    get(k){try{return localStorage.getItem(k)}catch(e){return null}},
+    set(k,v){try{localStorage.setItem(k,v);return true}catch(e){return false}},
+    del(k){try{localStorage.removeItem(k)}catch(e){}}
+  };
+  function uid(){return (crypto.randomUUID?crypto.randomUUID():Date.now().toString(36)+Math.random().toString(36).slice(2))}
+
+  const localStore={
+    load(){try{return JSON.parse(ls.get(LOCAL_KEY)||"[]")}catch(e){return []}},
+    save(r){if(!ls.set(LOCAL_KEY,JSON.stringify(r))) throw new Error("Pelayar tidak benarkan simpanan. Jangan guna mod peribadi/incognito.")},
+    async call(action,payload){
+      let r=this.load(); const now=new Date().toISOString();
+      if(action==="add") r.push({id:uid(),...payload.data,createdAt:now,updatedAt:now});
+      else if(action==="update") r=r.map(x=>x.id===payload.id?{...x,...payload.data,updatedAt:now}:x);
+      else if(action==="delete") r=r.filter(x=>x.id!==payload.id);
+      if(action!=="list") this.save(r);
+      return r;
+    }
+  };
+  const remoteStore={
+    async call(action,payload){
+      let res;
+      try{
+        res=await fetch(API,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},
+          body:JSON.stringify({action,pass,...(payload||{})})});
+      }catch(e){throw new Error("Tidak dapat sambung ke Google Sheets. Semak internet dan cuba lagi.")}
+      let j; try{j=await res.json()}catch(e){throw new Error("Jawapan pelayan tidak sah. Semak URL Apps Script dalam tetapan.")}
+      if(!j.ok){
+        const e=new Error(j.error==="wrong_password"?"Kata laluan salah.":j.error==="not_found"?"Rekod ini sudah dipadam oleh orang lain.":"Ralat pelayan: "+j.error);
+        e.code=j.error; if(j.rows) e.rows=j.rows; throw e;
+      }
+      return j.rows||[];
+    }
+  };
+  const store=API?remoteStore:localStore;
+
+  /* ---------- bantuan ---------- */
+  const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  const digits=s=>String(s||"").replace(/\D/g,"");
+  const norm=s=>String(s||"").toLowerCase().normalize("NFKD").replace(/[̀-ͯ]/g,"");
+  function toast(m){const t=$("#toast");t.textContent=m;t.hidden=false;clearTimeout(toast._t);toast._t=setTimeout(()=>t.hidden=true,2200)}
+  function notice(m){noticeEl.textContent=m||"";noticeEl.hidden=!m}
+  function todayStr(){const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
+  function fmtDay(s){
+    if(!s||!/^\d{4}-\d{2}-\d{2}$/.test(s)) return "";
+    const [y,m,d]=s.split("-").map(Number);
+    try{return new Date(y,m-1,d).toLocaleDateString("ms-MY",{day:"numeric",month:"short",year:"numeric"})}catch(e){return s}
+  }
+  function fmtTs(ts){if(!ts) return "";const d=new Date(ts);if(isNaN(d)) return "";try{return d.toLocaleDateString("ms-MY",{day:"numeric",month:"short",year:"numeric"})}catch(e){return ""}}
+  function highlight(text,q){
+    const safe=esc(text); if(!q) return safe;
+    const words=q.trim().split(/\s+/).filter(Boolean).map(w=>esc(w).replace(/[.*+?^${}()|[\]\\]/g,"\\$&"));
+    if(!words.length) return safe;
+    try{return safe.replace(new RegExp("("+words.join("|")+")","gi"),"<mark>$1</mark>")}catch(e){return safe}
+  }
+  function matches(r,q){
+    if(!q) return true;
+    const hay=norm([r.name,r.address,r.phone,r.note,r.purchaseDate,fmtDay(r.purchaseDate)].join(" "));
+    const hd=digits(r.phone);
+    return q.trim().split(/\s+/).every(w=>{
+      const d=digits(w);
+      if(d&&d.length===w.replace(/[\s\-+()]/g,"").length) return hd.includes(d)||hay.includes(norm(w));
+      return hay.includes(norm(w));
+    });
+  }
+  function waLink(p){let d=digits(p);if(!d) return null;if(d.startsWith("0")) d="6"+d;return "https://wa.me/"+d}
+
+  /* ---------- paparan ---------- */
+  function setRows(r){
+    rows=(r||[]).slice().sort((a,b)=>String(a.name).localeCompare(String(b.name),"ms",{sensitivity:"base"}));
+    render();
+  }
+  function render(){
+    const q=qEl.value, shown=rows.filter(r=>matches(r,q));
+    countEl.textContent=q?shown.length+" / "+rows.length+" pembeli":rows.length+" pembeli";
+    if(!rows.length){
+      listEl.innerHTML='<div class="empty"><strong>Belum ada pembeli disimpan</strong>Tekan “+ Tambah pembeli” untuk simpan nama, alamat dan no. telefon pembeli pertama anda.</div>';return;
+    }
+    if(!shown.length){
+      listEl.innerHTML='<div class="empty"><strong>Tiada padanan untuk “'+esc(q)+'”</strong>Cuba sebahagian nama, 4 digit terakhir no. telefon, atau nama bandar.</div>';return;
+    }
+    listEl.innerHTML=shown.map(r=>{
+      const wa=waLink(r.phone), id=esc(r.id);
+      const ctl=confirmId===r.id
+        ?'<span class="confirm">Padam '+esc(r.name)+'? <button type="button" class="danger solid" data-act="del-yes" data-id="'+id+'">Ya, padam</button><button type="button" data-act="del-no">Tidak</button></span>'
+        :'<button type="button" data-act="edit" data-id="'+id+'">Ubah</button><button type="button" class="danger" data-act="del" data-id="'+id+'">Padam</button>';
+      return '<article class="label">'+
+        '<div class="strip"><span>Kepada</span><span>'+(r.purchaseDate?'Beli: '+highlight(fmtDay(r.purchaseDate),q):'Disimpan: '+esc(fmtTs(r.createdAt)))+'</span></div>'+
+        '<div class="body">'+
+          '<p class="name">'+highlight(r.name,q)+'</p>'+
+          '<p class="addr">'+highlight(r.address,q)+'</p>'+
+          '<div class="phone">Tel: '+highlight(r.phone,q)+'</div>'+
+          (r.note?'<p class="note">'+highlight(r.note,q)+'</p>':'')+
+          '<div class="btns">'+
+            '<button type="button" data-act="copy" data-id="'+id+'">Salin semua</button>'+
+            '<button type="button" data-act="copyphone" data-id="'+id+'">Salin no. tel</button>'+
+            (wa?'<a href="'+wa+'" target="_blank" rel="noopener">WhatsApp</a>':'')+
+            ctl+
+          '</div>'+
+        '</div></article>';
+    }).join("");
+  }
+
+  async function run(action,payload,okMsg){
+    if(busy) return false; busy=true;
+    try{setRows(await store.call(action,payload));if(okMsg) toast(okMsg);return true}
+    catch(e){
+      if(e.rows) setRows(e.rows);
+      if(e.code==="wrong_password"){logout("Kata laluan telah ditukar. Sila masuk semula.");return false}
+      toast(e.message);return false;
+    }finally{busy=false}
+  }
+
+  async function copy(text,btn){
+    try{await navigator.clipboard.writeText(text);toast("Disalin")}
+    catch(e){
+      const card=btn.closest(".label"),sel=window.getSelection(),range=document.createRange();
+      range.selectNodeContents(card.querySelector(".body"));sel.removeAllRanges();sel.addRange(range);
+      toast("Teks dipilih — tekan Salin/Copy");
+    }
+  }
+
+  listEl.addEventListener("click",async e=>{
+    const b=e.target.closest("button[data-act]"); if(!b) return;
+    const r=rows.find(x=>x.id===b.dataset.id), act=b.dataset.act;
+    if(act==="copy"&&r) copy(r.name+"\n"+r.address+"\nTel: "+r.phone,b);
+    else if(act==="copyphone"&&r) copy(r.phone,b);
+    else if(act==="edit"&&r) openForm(r);
+    else if(act==="del"){confirmId=b.dataset.id;render()}
+    else if(act==="del-no"){confirmId=null;render()}
+    else if(act==="del-yes"&&r){b.disabled=true;confirmId=null;await run("delete",{id:r.id},"Dipadam")}
+  });
+
+  function openForm(r){
+    editingId=r?r.id:null; delete form.dataset.dupOk;
+    $("#formTitle").textContent=r?"Ubah butiran pembeli":"Pembeli baru";
+    $("#f-name").value=r?r.name:""; $("#f-phone").value=r?r.phone:"";
+    $("#f-addr").value=r?r.address:""; $("#f-note").value=r?(r.note||""):"";
+    $("#f-date").value=r?(r.purchaseDate||""):todayStr();
+    $("#formErr").hidden=true; form.hidden=false; $("#f-name").focus();
+    form.scrollIntoView({block:"nearest",behavior:"smooth"});
+  }
+  function closeForm(){form.hidden=true;editingId=null}
+  $("#addBtn").addEventListener("click",()=>openForm(null));
+  $("#cancelBtn").addEventListener("click",closeForm);
+
+  form.addEventListener("submit",async e=>{
+    e.preventDefault();
+    const data={name:$("#f-name").value.trim(),phone:$("#f-phone").value.trim(),address:$("#f-addr").value.trim(),
+      note:$("#f-note").value.trim(),purchaseDate:$("#f-date").value||""};
+    const errEl=$("#formErr");
+    const missing=[!data.name&&"nama",!data.phone&&"no. telefon",!data.address&&"alamat"].filter(Boolean);
+    if(missing.length){errEl.textContent="Sila isi "+missing.join(", ")+".";errEl.hidden=false;return}
+    if(digits(data.phone).length<9){errEl.textContent="No. telefon nampak terlalu pendek. Semak semula.";errEl.hidden=false;return}
+    if(!editingId){
+      const dup=rows.find(x=>digits(x.phone)===digits(data.phone));
+      if(dup&&!form.dataset.dupOk){errEl.textContent="No. ini sudah disimpan untuk "+dup.name+". Tekan Simpan sekali lagi jika mahu simpan juga.";errEl.hidden=false;form.dataset.dupOk="1";return}
+    }
+    const btn=$("#saveBtn"); btn.disabled=true; btn.textContent="Menyimpan…";
+    const ok=editingId?await run("update",{id:editingId,data},"Dikemas kini"):await run("add",{data},"Disimpan");
+    btn.disabled=false; btn.textContent="Simpan";
+    if(ok) closeForm();
+  });
+  qEl.addEventListener("input",()=>{confirmId=null;render()});
+
+  /* ---------- log masuk ---------- */
+  function showApp(){$("#loginForm").hidden=true;$("#app").hidden=false;$("#logoutBtn").hidden=!API}
+  function logout(msg){
+    pass=""; ls.del(PASS_KEY); rows=[]; countEl.textContent="";
+    $("#app").hidden=true; $("#logoutBtn").hidden=true; $("#loginForm").hidden=false;
+    const le=$("#loginErr"); le.textContent=msg||""; le.hidden=!msg; $("#l-pass").value=""; $("#l-pass").focus();
+  }
+  $("#logoutBtn").addEventListener("click",()=>logout());
+
+  async function tryLogin(p){
+    pass=p;
+    const rs=await remoteStore.call("list");
+    ls.set(PASS_KEY,p); showApp(); setRows(rs);
+  }
+  $("#loginForm").addEventListener("submit",async e=>{
+    e.preventDefault();
+    const p=$("#l-pass").value, le=$("#loginErr"), b=$("#loginBtn");
+    if(!p){le.textContent="Masukkan kata laluan.";le.hidden=false;return}
+    b.disabled=true;b.textContent="Memeriksa…";le.hidden=true;
+    try{await tryLogin(p)}catch(err){le.textContent=err.message;le.hidden=false}
+    finally{b.disabled=false;b.textContent="Masuk"}
+  });
+
+  async function start(){
+    if(!API){
+      showApp(); setRows(localStore.load());
+      notice("Data disimpan dalam pelayar peranti ini sahaja. Orang lain tidak nampak, dan data hilang jika cache pelayar dipadam. Sambungkan Google Sheets untuk kongsi data (lihat PANDUAN.md).");
+      return;
+    }
+    const saved=ls.get(PASS_KEY);
+    if(!saved){logout();return}
+    countEl.textContent="Memuatkan…"; showApp();
+    listEl.innerHTML='<div class="empty"><strong>Memuatkan senarai pembeli…</strong>Mengambil data dari Google Sheets.</div>';
+    try{await tryLogin(saved)}catch(e){
+      if(e.code==="wrong_password") logout("Kata laluan telah ditukar. Sila masuk semula.");
+      else{countEl.textContent="";listEl.innerHTML='<div class="empty"><strong>Senarai tidak dapat dimuatkan</strong>'+esc(e.message)+'</div>'}
+    }
+  }
+  start();
+})();
+</script>
+</body>
+</html>
