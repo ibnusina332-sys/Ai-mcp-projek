@@ -1,0 +1,521 @@
+<title>Log Angkat</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+  :root{
+    --bg:#121418; --card:#1c1f26; --card2:#252932; --line:#2e333d;
+    --text:#eef0f4; --muted:#9aa1ad; --accent:#2ec4a6; --accent-ink:#06241e;
+    --warn:#ff6b6b; --gold:#f5c451; color-scheme:dark;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-size:16px}
+  body{padding-bottom:calc(74px + env(safe-area-inset-bottom))}
+  button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
+  input,select{font:inherit;color:var(--text);background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:10px 12px;width:100%}
+  input:focus,select:focus{outline:2px solid var(--accent);outline-offset:-1px}
+  body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+  header{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);display:flex;align-items:center;gap:8px;padding-block:14px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));border-bottom:1px solid var(--line)}
+  header h1{font-size:19px;margin:0;flex:1}
+  .wrap{max-width:640px;margin:0 auto;padding-block:16px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+  .card{background:var(--card);border-radius:14px;padding:14px;margin-bottom:12px}
+  .muted{color:var(--muted)} .small{font-size:13px}
+  .row{display:flex;align-items:center;gap:10px}
+  .grow{flex:1;min-width:0}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:12px 16px;border-radius:12px;background:var(--card2);font-weight:600}
+  .btn.primary{background:var(--accent);color:var(--accent-ink)}
+  .btn.danger{color:var(--warn)}
+  .btn.block{width:100%}
+  .btn.sm{padding:7px 12px;font-size:14px;border-radius:10px}
+  .icon-btn{width:40px;height:40px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;font-size:20px}
+  .icon-btn:active,.btn:active{opacity:.75}
+  h2{font-size:15px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:22px 0 10px}
+  .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
+  .stat b{display:block;font-size:17px} .stat span{font-size:12px;color:var(--muted)}
+  .chip{display:inline-block;padding:4px 10px;border-radius:999px;background:var(--card2);font-size:13px;margin:0 6px 6px 0}
+  .chip.on{background:var(--accent);color:var(--accent-ink);font-weight:600}
+  nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:6;background:var(--card);border-top:1px solid var(--line);display:flex;padding-bottom:env(safe-area-inset-bottom)}
+  nav.tabs button{flex:1;padding:10px 0 12px;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:12px;color:var(--muted)}
+  nav.tabs button .ic{font-size:22px}
+  nav.tabs button.on{color:var(--accent)}
+  .ex-title{font-weight:700;color:var(--accent);font-size:16px}
+  table.sets{width:100%;border-collapse:collapse;margin-top:8px}
+  table.sets th{font-size:11px;text-transform:uppercase;color:var(--muted);font-weight:600;padding:4px 2px;text-align:center}
+  table.sets td{padding:3px 2px;text-align:center}
+  table.sets tr.done td{background:rgba(46,196,166,.13)}
+  table.sets input{padding:8px 4px;text-align:center;border-radius:8px}
+  .setno{font-weight:700;width:34px;border-radius:8px;padding:6px 0}
+  .setno.w{color:var(--gold)}
+  .prev{font-size:13px;color:var(--muted);white-space:nowrap}
+  .check{width:38px;height:36px;border-radius:8px;background:var(--card2);font-size:18px}
+  tr.done .check{background:var(--accent);color:var(--accent-ink)}
+  .banner{position:sticky;top:61px;z-index:4;margin:-16px -16px 12px;padding:10px 16px;background:var(--card2);display:flex;align-items:center;gap:10px}
+  .resume{position:fixed;left:12px;right:12px;bottom:calc(80px + env(safe-area-inset-bottom));z-index:7;max-width:616px;margin:0 auto;background:var(--accent);color:var(--accent-ink);border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:10px;font-weight:600}
+  .rest{position:fixed;left:12px;right:12px;bottom:calc(80px + env(safe-area-inset-bottom));z-index:8;max-width:616px;margin:0 auto;background:#0d2b26;border:1px solid var(--accent);border-radius:14px;padding:10px 14px;display:flex;align-items:center;gap:10px}
+  .rest .t{font-size:24px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--accent);min-width:70px}
+  .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:20;display:flex;align-items:flex-end;justify-content:center}
+  .modal{background:var(--card);width:100%;max-width:640px;max-height:88vh;border-radius:18px 18px 0 0;display:flex;flex-direction:column}
+  .modal .mh{display:flex;align-items:center;gap:8px;padding-block:14px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));border-bottom:1px solid var(--line)}
+  .modal .mh h3{margin:0;flex:1;font-size:17px}
+  .modal .mb{padding:12px 16px;overflow:auto}
+  .list-item{display:flex;align-items:center;gap:10px;padding:12px 4px;border-bottom:1px solid var(--line)}
+  .list-item:last-child{border-bottom:0}
+  .settings-item{display:flex;align-items:center;gap:12px;padding:14px 4px;border-bottom:1px solid var(--line);width:100%;text-align:left}
+  .settings-item:last-child{border-bottom:0}
+  .bars{display:flex;align-items:flex-end;gap:6px;height:110px;margin-top:10px}
+  .bars .b{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:4px}
+  .bars .b i{display:block;width:100%;background:var(--accent);border-radius:6px 6px 2px 2px;min-height:2px}
+  .bars .b small{font-size:10px;color:var(--muted)}
+  .bars .b em{font-size:11px;font-style:normal}
+  .empty{text-align:center;padding:40px 10px;color:var(--muted)}
+  .toast{position:fixed;left:50%;top:20px;transform:translateX(-50%);background:var(--card2);border:1px solid var(--line);padding:10px 16px;border-radius:12px;z-index:30;font-size:14px}
+  .pr{color:var(--gold);font-size:12px;font-weight:700}
+  .dlg{position:fixed;inset:0;z-index:40;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;padding:16px}
+  .dlg .box{background:var(--card);border-radius:16px;padding:18px;width:100%;max-width:380px;display:flex;flex-direction:column;gap:10px}
+  .dlg h3{margin:0;font-size:17px}
+  .dlg p{margin:0;color:var(--muted);font-size:14px;white-space:pre-line}
+  .drive-st{font-size:13px;padding:8px 10px;border-radius:10px;background:var(--card2);margin:8px 0}
+  .drive-st.err{color:var(--warn)}
+  label.f{display:block;font-size:13px;color:var(--muted);margin:12px 0 6px}
+</style>
+<div id="app"></div>
+<div id="overlay"></div>
+<div id="dialog"></div>
+
+<script>
+/* ===================== Data ===================== */
+const KEY = 'logangkat.v1';
+const DEFAULT_EX = [
+  ['Bench Press (Barbell)','Dada'],['Incline Bench Press (Dumbbell)','Dada'],['Chest Fly (Cable)','Dada'],['Push Up','Dada'],['Dips','Dada'],
+  ['Squat (Barbell)','Kaki'],['Leg Press','Kaki'],['Romanian Deadlift','Kaki'],['Lunge (Dumbbell)','Kaki'],['Leg Extension','Kaki'],['Leg Curl','Kaki'],['Calf Raise','Kaki'],['Hip Thrust','Kaki'],
+  ['Deadlift (Barbell)','Belakang'],['Pull Up','Belakang'],['Lat Pulldown','Belakang'],['Barbell Row','Belakang'],['Seated Cable Row','Belakang'],['Dumbbell Row','Belakang'],
+  ['Overhead Press (Barbell)','Bahu'],['Shoulder Press (Dumbbell)','Bahu'],['Lateral Raise','Bahu'],['Face Pull','Bahu'],['Rear Delt Fly','Bahu'],
+  ['Bicep Curl (Dumbbell)','Lengan'],['Hammer Curl','Lengan'],['Barbell Curl','Lengan'],['Tricep Pushdown','Lengan'],['Skull Crusher','Lengan'],['Overhead Tricep Extension','Lengan'],
+  ['Plank','Abs'],['Crunch','Abs'],['Hanging Leg Raise','Abs'],['Cable Crunch','Abs'],
+  ['Larian (Treadmill)','Kardio'],['Basikal Statik','Kardio'],['Rowing Machine','Kardio']
+];
+const GROUPS = ['Semua','Dada','Belakang','Kaki','Bahu','Lengan','Abs','Kardio','Lain'];
+
+function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
+function freshState(){
+  return {
+    settings:{ name:'Saya', unit:'kg', rest:90, bodyweight:'' },
+    exercises: DEFAULT_EX.map(([name,group])=>({id:uid(),name,group})),
+    routines:[], workouts:[], active:null
+  };
+}
+let S;
+try { S = JSON.parse(localStorage.getItem(KEY)) || freshState(); } catch(e){ S = freshState(); }
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){ if(!saveWarned){ saveWarned=true; toast('Storan pelayar disekat. Sandarkan ke Google Drive supaya data tak hilang.'); } } }
+let saveWarned=false;
+
+const ui = { tab:'home', view:null, exFilter:'Semua', exSearch:'' };
+let restEnd = 0, restTotal = 0, tickTimer = null;
+
+/* ===================== Helpers ===================== */
+const $ = s => document.querySelector(s);
+function esc(s){ return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function exById(id){ return S.exercises.find(e=>e.id===id) || {name:'(dipadam)',group:'Lain'}; }
+function fmtDur(ms){ const s=Math.floor(ms/1000),h=Math.floor(s/3600),m=Math.floor(s%3600/60),x=s%60;
+  return h? `${h}j ${m}m` : (m? `${m}m ${String(x).padStart(2,'0')}s` : `${x}s`); }
+function fmtClock(s){ s=Math.max(0,Math.ceil(s)); return `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`; }
+function fmtDate(t){ return new Date(t).toLocaleDateString('ms-MY',{weekday:'short',day:'numeric',month:'short',year:'numeric'}); }
+function num(n){ return (Math.round(n*10)/10).toLocaleString('ms-MY'); }
+function e1rm(w,r){ return r>0 ? w*(1+r/30) : 0; }
+function workoutStats(w){
+  let vol=0,sets=0;
+  w.exercises.forEach(x=>x.sets.forEach(s=>{ if(s.done){ sets++; vol+=(+s.w||0)*(+s.r||0); } }));
+  return {vol,sets};
+}
+function lastSetsFor(exId){
+  for(const w of S.workouts){ const x=w.exercises.find(e=>e.exId===exId); if(x) return x.sets.filter(s=>s.done); }
+  return [];
+}
+function bestFor(exId, beforeTime){
+  let best=0;
+  S.workouts.forEach(w=>{ if(beforeTime && w.end>=beforeTime) return;
+    w.exercises.forEach(x=>{ if(x.exId===exId) x.sets.forEach(s=>{ if(s.done) best=Math.max(best,e1rm(+s.w||0,+s.r||0)); }); }); });
+  return best;
+}
+function toast(msg){ document.querySelectorAll('.toast').forEach(x=>x.remove()); const t=document.createElement('div'); t.className='toast'; t.textContent=msg; document.body.appendChild(t); setTimeout(()=>t.remove(),2200); }
+function beep(){ try{ const a=new (window.AudioContext||window.webkitAudioContext)(); [0,.25,.5].forEach(d=>{const o=a.createOscillator(),g=a.createGain();o.frequency.value=880;o.connect(g);g.connect(a.destination);g.gain.setValueAtTime(.2,a.currentTime+d);o.start(a.currentTime+d);o.stop(a.currentTime+d+.15);}); }catch(e){} if(navigator.vibrate) navigator.vibrate([200,100,200]); }
+
+/* ===================== Render ===================== */
+function render(){
+  const app = $('#app');
+  if(ui.view==='active' && S.active) app.innerHTML = viewActive();
+  else if(ui.view==='settings') app.innerHTML = viewSettings();
+  else if(ui.view && ui.view.startsWith('routine:')) app.innerHTML = viewRoutineEdit(ui.view.slice(8));
+  else if(ui.view && ui.view.startsWith('workout:')) app.innerHTML = viewWorkoutDetail(ui.view.slice(8));
+  else if(ui.view && ui.view.startsWith('exercise:')) app.innerHTML = viewExerciseDetail(ui.view.slice(9));
+  else { ui.view=null; app.innerHTML = ({home:viewHome,workout:viewWorkoutTab,profile:viewProfile})[ui.tab](); }
+  if(!ui.view || ui.view==='settings') app.innerHTML += navHtml();
+  if(S.active && ui.view!=='active' && !restEnd) app.innerHTML += `<button class="resume" data-a="openActive"><span class="grow" style="text-align:left">▶ Sesi sedang berjalan · <span data-live="elapsed">${fmtDur(Date.now()-S.active.start)}</span></span><span>Sambung</span></button>`;
+  if(restEnd) app.innerHTML += restHtml();
+}
+function navHtml(){
+  const t=[['home','⌂','Utama'],['workout','🏋','Latihan'],['profile','👤','Profil']];
+  return `<nav class="tabs">${t.map(([k,ic,l])=>`<button class="${ui.tab===k&&!ui.view?'on':''}" data-a="tab" data-v="${k}"><span class="ic">${ic}</span>${l}</button>`).join('')}</nav>`;
+}
+function restHtml(){
+  const left=(restEnd-Date.now())/1000;
+  return `<div class="rest"><span class="small muted">Rehat</span><span class="t" data-live="rest">${fmtClock(left)}</span>
+    <span class="grow"></span><button class="btn sm" data-a="restAdd" data-v="-15">−15</button><button class="btn sm" data-a="restAdd" data-v="15">+15</button><button class="btn sm primary" data-a="restSkip">Langkau</button></div>`;
+}
+
+function workoutCard(w){
+  const st=workoutStats(w);
+  const names=w.exercises.slice(0,4).map(x=>{const d=x.sets.filter(s=>s.done).length;return `<div class="small">${d} × ${esc(exById(x.exId).name)}</div>`;}).join('');
+  const more=w.exercises.length>4?`<div class="small muted">+${w.exercises.length-4} lagi</div>`:'';
+  return `<button class="card" style="display:block;width:100%;text-align:left" data-a="openWorkout" data-v="${w.id}">
+    <div class="row"><b class="grow">${esc(w.name)}</b>${w.prs?`<span class="pr">🏆 ${w.prs} PR</span>`:''}</div>
+    <div class="small muted">${fmtDate(w.start)}</div>
+    <div class="stats"><div class="stat"><span>Masa</span><b>${fmtDur(w.end-w.start)}</b></div><div class="stat"><span>Volum</span><b>${num(st.vol)} ${S.settings.unit}</b></div><div class="stat"><span>Set</span><b>${st.sets}</b></div></div>
+    <div style="margin-top:10px">${names}${more}</div></button>`;
+}
+
+function viewHome(){
+  const ws=S.workouts;
+  return `<header><h1>Utama</h1></header><div class="wrap">
+    ${ws.length? ws.map(workoutCard).join('') : `<div class="empty"><div style="font-size:44px">🏋️</div><p>Belum ada latihan direkod.</p><button class="btn primary" data-a="tab" data-v="workout">Mula latihan pertama</button>${drive.mcp?`<div style="margin-top:12px"><button class="btn" data-a="driveRestore">☁️ Pulihkan dari Google Drive</button></div>`:''}</div>`}
+  </div>`;
+}
+
+function viewWorkoutTab(){
+  return `<header><h1>Latihan</h1></header><div class="wrap">
+    <button class="btn primary block" data-a="startEmpty">＋ Mula latihan kosong</button>
+    <h2>Rutin</h2>
+    <button class="btn block" data-a="newRoutine">＋ Rutin baru</button>
+    <div style="margin-top:12px">${S.routines.length? S.routines.map(r=>`<div class="card">
+      <div class="row"><b class="grow">${esc(r.name)}</b><button class="icon-btn" data-a="editRoutine" data-v="${r.id}" aria-label="Edit">✎</button></div>
+      <div class="small muted" style="margin:4px 0 12px">${r.items.map(i=>esc(exById(i.exId).name)).join(', ')||'Tiada senaman'}</div>
+      <button class="btn primary block" data-a="startRoutine" data-v="${r.id}">Mula rutin</button></div>`).join('')
+      : `<p class="muted small">Buat rutin (cth. Push / Pull / Legs) supaya senang mula latihan yang sama setiap kali.</p>`}</div>
+    <h2>Senaman</h2>
+    <button class="btn block" data-a="browseEx">📚 Senarai senaman (${S.exercises.length})</button>
+  </div>`;
+}
+
+function weekStart(t){ const d=new Date(t); d.setHours(0,0,0,0); d.setDate(d.getDate()-((d.getDay()+6)%7)); return d.getTime(); }
+function viewProfile(){
+  const ws=S.workouts, now=Date.now();
+  const totalVol=ws.reduce((a,w)=>a+workoutStats(w).vol,0);
+  const totalTime=ws.reduce((a,w)=>a+(w.end-w.start),0);
+  const weeks=[]; let ws0=weekStart(now);
+  for(let i=7;i>=0;i--){ const s=ws0-i*7*864e5, e=s+7*864e5; weeks.push({s,n:ws.filter(w=>w.start>=s&&w.start<e).length}); }
+  const mx=Math.max(1,...weeks.map(w=>w.n));
+  // PRs
+  const best={};
+  ws.forEach(w=>w.exercises.forEach(x=>x.sets.forEach(s=>{ if(!s.done) return; const v=e1rm(+s.w||0,+s.r||0);
+    if(v>0 && (!best[x.exId]||v>best[x.exId].v)) best[x.exId]={v,w:+s.w,r:+s.r}; })));
+  const prs=Object.entries(best).sort((a,b)=>b[1].v-a[1].v).slice(0,8);
+  return `<header><h1>${esc(S.settings.name)}</h1><button class="icon-btn" data-a="openSettings" aria-label="Tetapan">⚙</button></header><div class="wrap">
+    <div class="card"><div class="stats"><div class="stat"><span>Latihan</span><b>${ws.length}</b></div><div class="stat"><span>Jumlah masa</span><b>${fmtDur(totalTime)}</b></div><div class="stat"><span>Volum</span><b>${num(totalVol)}</b></div></div></div>
+    <div class="card"><b>Latihan seminggu</b><div class="small muted">8 minggu terakhir</div>
+      <div class="bars">${weeks.map(w=>`<div class="b"><em>${w.n||''}</em><i style="height:${w.n/mx*80}%"></i><small>${new Date(w.s).getDate()}/${new Date(w.s).getMonth()+1}</small></div>`).join('')}</div></div>
+    <h2>Rekod peribadi (anggaran 1RM)</h2>
+    <div class="card">${prs.length? prs.map(([id,p])=>`<button class="list-item" style="width:100%;text-align:left" data-a="openExercise" data-v="${id}"><span class="grow">${esc(exById(id).name)}<div class="small muted">${num(p.w)} ${S.settings.unit} × ${p.r}</div></span><b>${num(p.v)} ${S.settings.unit}</b></button>`).join('') : '<div class="muted small">Siapkan beberapa set untuk lihat rekod di sini.</div>'}</div>
+  </div>`;
+}
+
+function viewSettings(){
+  const st=S.settings;
+  return `<header><button class="icon-btn" data-a="back" aria-label="Kembali">←</button><h1>Tetapan</h1></header><div class="wrap">
+    <h2>Akaun</h2>
+    <div class="card"><label class="f">Nama</label><input data-set="name" value="${esc(st.name)}">
+      <label class="f">Berat badan (${st.unit})</label><input data-set="bodyweight" inputmode="decimal" value="${esc(st.bodyweight)}"></div>
+    <h2>Pilihan</h2>
+    <div class="card">
+      <label class="f">Unit berat</label><select data-set="unit"><option ${st.unit==='kg'?'selected':''}>kg</option><option ${st.unit==='lb'?'selected':''}>lb</option></select>
+      <label class="f">Masa rehat lalai (saat)</label><select data-set="rest">${[0,30,45,60,90,120,150,180,240,300].map(v=>`<option value="${v}" ${+st.rest===v?'selected':''}>${v?fmtClock(v):'Tutup'}</option>`).join('')}</select>
+    </div>
+    <h2>Google Drive</h2>
+    <div class="card">${driveSection()}</div>
+    <h2>Data</h2>
+    <div class="card">
+      <p class="small muted" style="margin-top:0">Data disimpan dalam pelayar peranti ini. Sandaran Google Drive membolehkan anda pulihkan di peranti lain.</p>
+      <button class="settings-item" data-a="export">⬇️ <span class="grow">Eksport sandaran (JSON)</span>›</button>
+      <button class="settings-item" data-a="exportCsv">📄 <span class="grow">Eksport CSV</span>›</button>
+      <button class="settings-item" data-a="import">⬆️ <span class="grow">Import sandaran</span>›</button>
+      <button class="settings-item" data-a="reset" style="color:var(--warn)">🗑 <span class="grow">Padam semua data</span></button>
+    </div>
+    <p class="small muted" style="text-align:center">Log Angkat · kegunaan peribadi</p>
+  </div>`;
+}
+
+function viewActive(){
+  const a=S.active, st=workoutStats(a);
+  return `<header><button class="icon-btn" data-a="back" aria-label="Kecilkan">⌄</button><h1>Sesi latihan</h1><button class="btn sm primary" data-a="finish">Selesai</button></header>
+  <div class="wrap">
+    <div class="banner small"><div class="grow">Masa <b data-live="elapsed">${fmtDur(Date.now()-a.start)}</b></div><div>Volum <b>${num(st.vol)} ${S.settings.unit}</b></div><div>Set <b>${st.sets}</b></div></div>
+    <input data-active="name" value="${esc(a.name)}" style="font-weight:700;font-size:18px;margin-bottom:12px">
+    ${a.exercises.map((x,xi)=>{
+      const prev=lastSetsFor(x.exId); let n=0;
+      return `<div class="card"><div class="row"><span class="ex-title grow">${esc(exById(x.exId).name)}</span>
+        <button class="icon-btn" data-a="exMenu" data-v="${xi}" aria-label="Menu">⋯</button></div>
+        <input data-ex-note="${xi}" placeholder="Nota..." value="${esc(x.note||'')}" style="margin-top:6px;padding:7px 10px;font-size:14px;background:transparent">
+        <table class="sets"><thead><tr><th>Set</th><th>Sebelum</th><th>${S.settings.unit}</th><th>Reps</th><th>✓</th></tr></thead><tbody>
+        ${x.sets.map((s,si)=>{ const lbl=s.t==='w'?'W':(++n); const p=prev[si];
+          return `<tr class="${s.done?'done':''}"><td><button class="setno ${s.t==='w'?'w':''}" data-a="setType" data-v="${xi}.${si}">${lbl}</button></td>
+          <td class="prev">${p?`${num(+p.w||0)}×${p.r}`:'—'}</td>
+          <td><input data-set-f="${xi}.${si}.w" inputmode="decimal" value="${esc(s.w)}" placeholder="${p?esc(p.w):'0'}"></td>
+          <td><input data-set-f="${xi}.${si}.r" inputmode="numeric" value="${esc(s.r)}" placeholder="${p?esc(p.r):'0'}"></td>
+          <td><button class="check" data-a="toggleSet" data-v="${xi}.${si}">✓</button></td></tr>`; }).join('')}
+        </tbody></table>
+        <button class="btn sm block" style="margin-top:8px" data-a="addSet" data-v="${xi}">＋ Tambah set</button></div>`;}).join('')}
+    <button class="btn primary block" data-a="addExActive">＋ Tambah senaman</button>
+    <button class="btn danger block" style="margin-top:10px" data-a="discard">Buang sesi</button>
+    <p class="small muted">Tip: tekan nombor set untuk tukar jadi set panas badan (W). Kotak kosong guna nilai sesi lepas bila ditanda ✓.</p>
+  </div>`;
+}
+
+function viewWorkoutDetail(id){
+  const w=S.workouts.find(x=>x.id===id); if(!w){ ui.view=null; return viewHome(); }
+  const st=workoutStats(w);
+  return `<header><button class="icon-btn" data-a="back">←</button><h1>${esc(w.name)}</h1></header><div class="wrap">
+    <div class="card"><div class="small muted">${fmtDate(w.start)}</div><div class="stats"><div class="stat"><span>Masa</span><b>${fmtDur(w.end-w.start)}</b></div><div class="stat"><span>Volum</span><b>${num(st.vol)} ${S.settings.unit}</b></div><div class="stat"><span>Set</span><b>${st.sets}</b></div></div></div>
+    ${w.exercises.map(x=>{let n=0;return `<div class="card"><button class="ex-title" data-a="openExercise" data-v="${x.exId}">${esc(exById(x.exId).name)}</button>
+      ${x.note?`<div class="small muted">${esc(x.note)}</div>`:''}
+      ${x.sets.filter(s=>s.done).map(s=>`<div class="row small" style="padding:4px 0"><span style="width:30px" class="${s.t==='w'?'pr':''}">${s.t==='w'?'W':++n}</span><span class="grow">${num(+s.w||0)} ${S.settings.unit} × ${s.r}</span>${s.pr?'<span class="pr">🏆 PR</span>':''}</div>`).join('')}</div>`;}).join('')}
+    <div class="row"><button class="btn block grow" data-a="saveAsRoutine" data-v="${w.id}">Simpan jadi rutin</button><button class="btn danger" data-a="delWorkout" data-v="${w.id}">Padam</button></div>
+  </div>`;
+}
+
+function viewExerciseDetail(id){
+  const ex=exById(id); const rows=[];
+  [...S.workouts].reverse().forEach(w=>w.exercises.forEach(x=>{ if(x.exId!==id) return; let b=0,top=null;
+    x.sets.forEach(s=>{ if(!s.done) return; const v=e1rm(+s.w||0,+s.r||0); if(v>b){b=v;top=s;} }); if(top) rows.push({t:w.start,v:b,s:top}); }));
+  const mx=Math.max(1,...rows.map(r=>r.v)), last=rows.slice(-12);
+  const custom=!DEFAULT_EX.some(d=>d[0]===ex.name);
+  return `<header><button class="icon-btn" data-a="back">←</button><h1>${esc(ex.name)}</h1></header><div class="wrap">
+    <span class="chip">${esc(ex.group)}</span>
+    <div class="card"><b>Anggaran 1RM terbaik setiap sesi</b>
+      ${last.length? `<div class="bars">${last.map(r=>`<div class="b"><em>${Math.round(r.v)}</em><i style="height:${r.v/mx*80}%"></i><small>${new Date(r.t).getDate()}/${new Date(r.t).getMonth()+1}</small></div>`).join('')}</div>` : '<p class="muted small">Belum ada data.</p>'}</div>
+    <h2>Sejarah</h2>
+    <div class="card">${rows.length? [...rows].reverse().map(r=>`<div class="list-item"><span class="grow small">${fmtDate(r.t)}</span><span class="small">${num(+r.s.w||0)} × ${r.s.r}</span></div>`).join('') : '<div class="muted small">—</div>'}</div>
+    ${custom?`<button class="btn danger block" data-a="delExercise" data-v="${id}">Padam senaman ini</button>`:''}
+  </div>`;
+}
+
+function viewRoutineEdit(id){
+  const r=S.routines.find(x=>x.id===id); if(!r){ ui.view=null; return viewWorkoutTab(); }
+  return `<header><button class="icon-btn" data-a="back">←</button><h1>Edit rutin</h1></header><div class="wrap">
+    <label class="f">Nama rutin</label><input data-routine-name="${r.id}" value="${esc(r.name)}">
+    <h2>Senaman</h2>
+    ${r.items.map((it,i)=>`<div class="card row"><span class="grow">${esc(exById(it.exId).name)}</span>
+      <button class="icon-btn" data-a="rSets" data-v="${i}.-1">−</button><b>${it.sets}</b><span class="small muted">set</span><button class="icon-btn" data-a="rSets" data-v="${i}.1">＋</button>
+      <button class="icon-btn" data-a="rMove" data-v="${i}" aria-label="Naik">↑</button><button class="icon-btn" data-a="rDel" data-v="${i}" style="color:var(--warn)">✕</button></div>`).join('')}
+    <button class="btn primary block" data-a="addExRoutine">＋ Tambah senaman</button>
+    <button class="btn danger block" style="margin-top:20px" data-a="delRoutine">Padam rutin</button>
+  </div>`;
+}
+
+/* ===================== Exercise picker modal ===================== */
+let pickCb=null;
+function openPicker(cb){ pickCb=cb; ui.exSearch=''; renderPicker(); }
+function renderPicker(){
+  const q=ui.exSearch.toLowerCase();
+  const list=S.exercises.filter(e=>(ui.exFilter==='Semua'||e.group===ui.exFilter) && e.name.toLowerCase().includes(q)).sort((a,b)=>a.name.localeCompare(b.name));
+  $('#overlay').innerHTML=`<div class="modal-bg" data-a="closeModal"><div class="modal">
+    <div class="mh"><h3>${pickCb?'Pilih senaman':'Senaman'}</h3><button class="icon-btn" data-a="closeModal">✕</button></div>
+    <div class="mb">
+      <input id="exq" placeholder="Cari senaman..." value="${esc(ui.exSearch)}">
+      <div style="margin:10px 0 4px">${GROUPS.map(g=>`<button class="chip ${ui.exFilter===g?'on':''}" data-a="exFilter" data-v="${g}">${g}</button>`).join('')}</div>
+      ${list.map(e=>`<button class="list-item" style="width:100%;text-align:left" data-a="pickEx" data-v="${e.id}"><span class="grow">${esc(e.name)}<div class="small muted">${esc(e.group)}</div></span>${pickCb?'＋':'›'}</button>`).join('')||'<p class="muted small">Tiada padanan.</p>'}
+      <div class="card" style="margin-top:12px;background:var(--card2)"><b class="small">Senaman sendiri</b>
+        <input id="newExName" placeholder="Nama senaman baru" style="margin-top:8px" value="${esc(ui.exSearch)}">
+        <select id="newExGroup" style="margin-top:8px">${GROUPS.slice(1).map(g=>`<option>${g}</option>`).join('')}</select>
+        <button class="btn primary block" style="margin-top:8px" data-a="createEx">Cipta</button></div>
+    </div></div></div>`;
+  const q2=$('#exq'); q2.oninput=()=>{ ui.exSearch=q2.value; const pos=q2.selectionStart; renderPicker(); const n=$('#exq'); n.focus(); n.setSelectionRange(pos,pos); };
+}
+function closeModal(){ $('#overlay').innerHTML=''; pickCb=null; }
+
+
+/* ===================== Dialogs (viewer blocks alert/confirm/prompt) ===================== */
+function dialog(html){ return new Promise(res=>{ const d=$('#dialog'); d.innerHTML=`<div class="dlg"><div class="box">${html}</div></div>`;
+  d.onclick=e=>{ const b=e.target.closest('[data-r]'); if(b){ const v=b.dataset.r; const inp=d.querySelector('input'); d.innerHTML=''; d.onclick=null; res(v==='__in'? (inp.value.trim()||null) : (v==='__no'?null:v)); }
+    else if(e.target.classList.contains('dlg')){ d.innerHTML=''; d.onclick=null; res(null);} };
+  const inp=d.querySelector('input'); if(inp){ inp.focus(); inp.select(); inp.onkeydown=e=>{ if(e.key==='Enter') d.querySelector('[data-r="__in"]').click(); }; } }); }
+async function confirmBox(title,text,ok='OK',danger=false){
+  return (await dialog(`<h3>${esc(title)}</h3><p>${esc(text)}</p><div class="row" style="justify-content:flex-end"><button class="btn" data-r="__no">Batal</button><button class="btn ${danger?'danger':'primary'}" data-r="yes">${esc(ok)}</button></div>`))==='yes'; }
+function promptBox(title,label,val=''){
+  return dialog(`<h3>${esc(title)}</h3><label class="f" for="dlgIn" style="margin:0">${esc(label)}</label><input id="dlgIn" value="${esc(val)}"><div class="row" style="justify-content:flex-end"><button class="btn" data-r="__no">Batal</button><button class="btn primary" data-r="__in">Simpan</button></div>`); }
+function choose(title,opts){
+  return dialog(`<h3>${esc(title)}</h3>${opts.map(([v,l,d])=>`<button class="btn block ${d?'danger':''}" data-r="${v}">${esc(l)}</button>`).join('')}<button class="btn block" data-r="__no">Batal</button>`); }
+
+/* ===================== Google Drive backup ===================== */
+const DRIVE='Google Drive', PREFIX='LogAngkat-sandaran', KEEP=5;
+const drive={ mcp:null, busy:false, msg:'', err:false };
+(async()=>{ try{ drive.mcp = window.claude ? await window.claude.use('mcp') : null; }catch(e){ drive.mcp=null; } if(!S.workouts.length || ui.view==='settings') render(); })();
+function driveErrText(e){
+  const c=e&&e.code;
+  if(c==='needs_reauth') return 'Sambungan Google Drive tamat. Sambung semula di claude.ai → Settings → Connectors.';
+  if(c==='server_not_connected'||c==='selection_required') return 'Google Drive belum disambung. Tambah di claude.ai → Settings → Connectors.';
+  if(c==='not_in_manifest'||c==='approval_required'||c==='consent_required') return 'Akses Google Drive belum dibenarkan untuk halaman ini. Tekan butang sekali lagi dan pilih Benarkan.';
+  if(c==='blocked_by_policy') return 'Organisasi anda menyekat Google Drive di sini.';
+  if(c==='server_unavailable'||c==='rate_limited') return 'Google Drive tak dapat dihubungi sekarang. Cuba lagi sebentar.';
+  if(c==='tool_error') return 'Google Drive menolak permintaan: '+String(e.message||'').slice(0,160);
+  return 'Gagal ('+(c||'ralat')+'). Cuba lagi.';
+}
+function driveSection(){
+  if(!drive.mcp) return `<p class="small muted" style="margin:0">Sandaran Google Drive hanya berfungsi bila halaman ini dibuka di claude.ai dengan penyambung Google Drive.</p>`;
+  const st=S.settings;
+  return `<div class="small muted">Setiap sandaran disimpan sebagai fail <b>${PREFIX}-….json</b> dalam My Drive. ${KEEP} sandaran terbaru disimpan, yang lebih lama dibuang ke Trash.</div>
+    <div class="drive-st ${drive.err?'err':''}">${drive.busy?'⏳ ':''}${esc(drive.msg|| (st.driveLast?'Sandaran terakhir: '+new Date(st.driveLast).toLocaleString('ms-MY'):'Belum pernah disandarkan.'))}</div>
+    <button class="settings-item" data-a="driveBackup" ${drive.busy?'disabled':''}>☁️ <span class="grow">Sandarkan sekarang</span>›</button>
+    <button class="settings-item" data-a="driveRestore" ${drive.busy?'disabled':''}>⤵️ <span class="grow">Pulihkan dari Drive</span>›</button>
+    <label class="settings-item" for="driveAuto"><span>🔁</span><span class="grow">Sandar automatik selepas setiap latihan</span><input type="checkbox" id="driveAuto" data-a="driveAuto" ${st.driveAuto?'checked':''} style="width:22px;height:22px"></label>`;
+}
+function setDrive(msg,err=false,busy=false){ drive.msg=msg; drive.err=err; drive.busy=busy; if(ui.view==='settings') render(); }
+async function listBackups(){
+  const r=await drive.mcp.callTool(DRIVE,'search_files',{query:`title contains '${PREFIX}' and trashed = false`,orderBy:'modifiedTime desc',pageSize:30,excludeContentSnippets:true},{cache:false});
+  return ((r.payload&&r.payload.files)||[]).filter(f=>f.title&&f.title.startsWith(PREFIX));
+}
+async function backupToDrive(auto){
+  if(!drive.mcp||drive.busy) return;
+  setDrive('Menyimpan ke Google Drive…',false,true);
+  const d=new Date(), stamp=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}_${String(d.getHours()).padStart(2,'0')}${String(d.getMinutes()).padStart(2,'0')}`;
+  const data={...S, active:null, savedAt:Date.now()};
+  try{
+    await drive.mcp.callTool(DRIVE,'create_file',{title:`${PREFIX}-${stamp}.json`,textContent:JSON.stringify(data),contentMimeType:'application/json',disableConversionToGoogleType:true});
+  }catch(e){ setDrive(driveErrText(e),true); if(auto) toast('Sandaran Drive gagal. Lihat Tetapan.'); return; }
+  if(S.settings.driveAuto===undefined) S.settings.driveAuto=true;
+  S.settings.driveLast=Date.now(); save();
+  setDrive('Disandarkan ke Google Drive ✓'); toast('Disandarkan ke Google Drive ☁️');
+  try{ const old=(await listBackups()).slice(KEEP); for(const f of old) await drive.mcp.callTool(DRIVE,'trash_file',{fileId:f.id}); }catch(e){}
+}
+function findState(x,depth=0){
+  if(depth>6||x==null) return null;
+  if(typeof x==='string'){
+    for(const t of [x, (()=>{ try{ return new TextDecoder().decode(Uint8Array.from(atob(x.replace(/\s/g,'')),c=>c.charCodeAt(0))); }catch(e){ return null; } })()]){
+      if(!t) continue; try{ const o=JSON.parse(t); const f=findState(o,depth+1); if(f) return f; }catch(e){} }
+    return null;
+  }
+  if(typeof x==='object'){ if(Array.isArray(x.workouts)&&Array.isArray(x.exercises)) return x;
+    for(const v of Object.values(x)){ const f=findState(v,depth+1); if(f) return f; } }
+  return null;
+}
+async function restoreFromDrive(){
+  if(!drive.mcp) return toast('Google Drive tidak tersedia di sini');
+  setDrive('Mencari sandaran…',false,true);
+  let files; try{ files=await listBackups(); }catch(e){ setDrive(driveErrText(e),true); return toast(driveErrText(e)); }
+  setDrive('');
+  if(!files.length) return confirmBox('Tiada sandaran','Tiada fail sandaran Log Angkat dijumpai dalam Google Drive anda.','OK');
+  const pick=await choose('Pilih sandaran',files.slice(0,KEEP+3).map((f,i)=>[String(i),new Date(f.modifiedTime||f.createdTime).toLocaleString('ms-MY')+(i===0?' (terbaru)':'')]));
+  if(pick==null) return;
+  const f=files[+pick];
+  setDrive('Memuat turun sandaran…',false,true);
+  let st; try{ const r=await drive.mcp.callTool(DRIVE,'download_file_content',{fileId:f.id},{cache:false}); st=findState(r.payload)||findState(r.content); }
+  catch(e){ setDrive(driveErrText(e),true); return toast(driveErrText(e)); }
+  setDrive('');
+  if(!st) return confirmBox('Fail tak boleh dibaca','Fail sandaran ini tidak mengandungi data Log Angkat yang sah.','OK');
+  if(!await confirmBox('Pulihkan sandaran?',`${st.workouts.length} latihan dan ${st.routines.length} rutin akan menggantikan data di peranti ini.`,'Pulihkan',true)) return;
+  st.active=S.active; st.settings={...st.settings, driveLast:S.settings.driveLast||st.settings.driveLast};
+  S=st; save(); ui.view=null; ui.tab='home'; render(); toast('Data dipulihkan dari Google Drive ✓');
+}
+
+/* ===================== Actions ===================== */
+function newSet(prev){ return {w:'',r:'',done:false,t:'n'}; }
+async function startWorkout(name, items){
+  if(S.active && !await confirmBox('Ada sesi sedang berjalan','Buang sesi itu dan mula yang baru?','Buang & mula',true)) return;
+  S.active={id:uid(),name,start:Date.now(),exercises:items.map(it=>({exId:it.exId,note:'',sets:Array.from({length:it.sets||3},newSet)}))};
+  save(); ui.view='active'; render();
+}
+async function finishWorkout(){
+  const a=S.active;
+  a.exercises.forEach(x=>x.sets=x.sets.filter(s=>s.done));
+  a.exercises=a.exercises.filter(x=>x.sets.length);
+  if(!a.exercises.length){ if(await confirmBox('Tiada set selesai','Tiada set yang ditanda ✓. Buang sesi ini?','Buang',true)){ S.active=null; save(); ui.view=null; render(); } return; }
+  a.end=Date.now(); let prs=0;
+  a.exercises.forEach(x=>{ const hist=bestFor(x.exId); let top=null,tv=0;
+    x.sets.forEach(s=>{ if(s.t==='w') return; const v=e1rm(+s.w||0,+s.r||0); if(v>tv){tv=v;top=s;} });
+    if(top && hist>0 && tv>hist){ top.pr=true; prs++; } });
+  a.prs=prs; S.workouts.unshift(a); S.active=null; restEnd=0; save();
+  ui.view='workout:'+a.id; ui.tab='home'; render(); toast(prs?`Tahniah! ${prs} rekod peribadi baru 🏆`:'Latihan disimpan 💪');
+  if(S.settings.driveAuto) backupToDrive(true);
+}
+function startRest(){ const r=+S.settings.rest; if(!r) return; restTotal=r; restEnd=Date.now()+r*1000; render(); }
+
+const actions={
+  driveBackup(){ backupToDrive(false); },
+  driveRestore(){ restoreFromDrive(); },
+  driveAuto(){ S.settings.driveAuto=$('#driveAuto').checked; save(); },
+  tab(v){ ui.tab=v; ui.view=null; render(); window.scrollTo(0,0); },
+  back(){ ui.view=null; render(); },
+  openActive(){ ui.view='active'; render(); },
+  openSettings(){ ui.view='settings'; render(); },
+  openWorkout(v){ ui.view='workout:'+v; render(); window.scrollTo(0,0); },
+  openExercise(v){ closeModal(); ui.view='exercise:'+v; render(); window.scrollTo(0,0); },
+  startEmpty(){ startWorkout('Latihan '+new Date().toLocaleDateString('ms-MY',{weekday:'long'}),[]); },
+  startRoutine(v){ const r=S.routines.find(x=>x.id===v); startWorkout(r.name,r.items); },
+  async newRoutine(){ const name=await promptBox('Rutin baru','Nama rutin','Push Day'); if(!name) return; const r={id:uid(),name,items:[]}; S.routines.push(r); save(); ui.view='routine:'+r.id; render(); },
+  editRoutine(v){ ui.view='routine:'+v; render(); },
+  browseEx(){ openPicker(null); },
+  closeModal,
+  exFilter(v){ ui.exFilter=v; renderPicker(); },
+  pickEx(v){ if(pickCb){ const cb=pickCb; closeModal(); cb(v); } else actions.openExercise(v); },
+  createEx(){ const n=$('#newExName').value.trim(); if(!n) return toast('Masukkan nama');
+    const e={id:uid(),name:n,group:$('#newExGroup').value}; S.exercises.push(e); save(); toast('Senaman dicipta'); actions.pickEx(e.id); },
+  addExActive(){ openPicker(id=>{ const prev=lastSetsFor(id); S.active.exercises.push({exId:id,note:'',sets:Array.from({length:prev.length||3},newSet)}); save(); render(); }); },
+  addSet(v){ const x=S.active.exercises[v]; x.sets.push(newSet()); save(); render(); },
+  toggleSet(v){ const [xi,si]=v.split('.').map(Number); const x=S.active.exercises[xi], s=x.sets[si];
+    if(!s.done){ const p=lastSetsFor(x.exId)[si]; if(s.w===''&&p) s.w=p.w; if(s.r===''&&p) s.r=p.r; if(s.w==='') s.w='0';
+      if(s.r===''){ toast('Masukkan bilangan reps'); return; } s.done=true; save(); startRest(); render(); }
+    else { s.done=false; save(); render(); } },
+  async setType(v){ const [xi,si]=v.split('.').map(Number); const s=S.active.exercises[xi].sets[si];
+    const c=await choose('Set ini',[['1','Set biasa'],['2','Panas badan (W)'],['3','Padam set',true]]);
+    if(c==='1') s.t='n'; else if(c==='2') s.t='w'; else if(c==='3') S.active.exercises[xi].sets.splice(si,1); else return; save(); render(); },
+  async exMenu(v){ const xi=+v, a=S.active.exercises;
+    const c=await choose(exById(a[xi].exId).name,[['1','Naik ke atas'],['2','Tukar senaman'],['3','Buang senaman',true]]);
+    if(c==='1'&&xi>0){ [a[xi-1],a[xi]]=[a[xi],a[xi-1]]; }
+    else if(c==='2'){ openPicker(id=>{ a[xi].exId=id; save(); render(); }); return; }
+    else if(c==='3'){ if(!await confirmBox('Buang senaman?','Semua set senaman ini dalam sesi akan dibuang.','Buang',true)) return; a.splice(xi,1); }
+    else return; save(); render(); },
+  async finish(){ if(await confirmBox('Selesai latihan?','Set yang belum ditanda ✓ tidak akan disimpan.','Simpan')) finishWorkout(); },
+  async discard(){ if(await confirmBox('Buang sesi?','Semua data sesi ini akan hilang.','Buang',true)){ S.active=null; restEnd=0; save(); ui.view=null; render(); } },
+  restAdd(v){ restEnd+= +v*1000; if(restEnd<=Date.now()) restEnd=0; render(); },
+  restSkip(){ restEnd=0; render(); },
+  async delWorkout(v){ if(!await confirmBox('Padam latihan?','Latihan ini akan dipadam dari sejarah.','Padam',true)) return; S.workouts=S.workouts.filter(w=>w.id!==v); save(); ui.view=null; render(); },
+  async saveAsRoutine(v){ const w=S.workouts.find(x=>x.id===v); const name=await promptBox('Simpan jadi rutin','Nama rutin',w.name); if(!name) return;
+    S.routines.push({id:uid(),name,items:w.exercises.map(x=>({exId:x.exId,sets:x.sets.filter(s=>s.t!=='w').length||3}))}); save(); toast('Rutin disimpan'); },
+  addExRoutine(){ const r=S.routines.find(x=>x.id===ui.view.slice(8)); openPicker(id=>{ r.items.push({exId:id,sets:3}); save(); render(); }); },
+  rSets(v){ const [i,d]=v.split('.').map(Number); const r=S.routines.find(x=>x.id===ui.view.slice(8)); r.items[i].sets=Math.max(1,Math.min(10,r.items[i].sets+d)); save(); render(); },
+  rMove(v){ const i=+v; if(!i) return; const it=S.routines.find(x=>x.id===ui.view.slice(8)).items; [it[i-1],it[i]]=[it[i],it[i-1]]; save(); render(); },
+  rDel(v){ S.routines.find(x=>x.id===ui.view.slice(8)).items.splice(+v,1); save(); render(); },
+  async delRoutine(){ if(!await confirmBox('Padam rutin?','Sejarah latihan tidak terjejas.','Padam',true)) return; S.routines=S.routines.filter(x=>x.id!==ui.view.slice(8)); save(); ui.view=null; render(); },
+  async delExercise(v){ if(!await confirmBox('Padam senaman?','Ia dibuang dari senarai. Sejarah lama kekal.','Padam',true)) return; S.exercises=S.exercises.filter(e=>e.id!==v); save(); ui.view=null; render(); },
+  export(){ download(`logangkat-${new Date().toISOString().slice(0,10)}.json`, JSON.stringify(S,null,1), 'application/json'); },
+  exportCsv(){ const rows=[['tarikh','latihan','senaman','set','jenis',S.settings.unit,'reps']];
+    S.workouts.forEach(w=>w.exercises.forEach(x=>x.sets.forEach((s,i)=>rows.push([new Date(w.start).toISOString(),w.name,exById(x.exId).name,i+1,s.t==='w'?'panas':'biasa',s.w,s.r]))));
+    download('logangkat.csv', rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n'), 'text/csv'); },
+  import(){ const i=document.createElement('input'); i.type='file'; i.accept='.json,application/json';
+    i.onchange=()=>{ const f=i.files[0]; if(!f) return; f.text().then(async t=>{ try{ const d=JSON.parse(t); if(!d.workouts||!d.exercises) throw 0;
+      if(!await confirmBox('Import sandaran?',`${d.workouts.length} latihan akan menggantikan data sekarang.`,'Import',true)) return; S=d; save(); render(); toast('Import berjaya'); }catch(e){ toast('Fail tidak sah'); } }); };
+    i.click(); },
+  async reset(){ if(await confirmBox('Padam SEMUA data?','Tindakan ini tak boleh diundur. Sandarkan ke Drive dulu jika perlu.','Teruskan',true) && await confirmBox('Pasti?','Semua latihan, rutin dan senaman sendiri akan hilang dari peranti ini.','Padam semua',true)){ S=freshState(); save(); ui.view=null; ui.tab='home'; render(); } },
+};
+async function download(name,text,type){
+  const dl=window.claude? await window.claude.use('downloads').catch(()=>null):null;
+  if(!dl) return toast('Muat turun tidak tersedia di sini');
+  try{ await dl.save({filename:name,data:new Blob([text],{type})}); }catch(e){ if(e&&e.code!=='declined') toast('Muat turun gagal: '+(e.code||'ralat')); } }
+
+document.addEventListener('click',e=>{ const b=e.target.closest('[data-a]'); if(!b) return;
+  if(b.classList.contains('modal-bg') && e.target!==b) return;
+  const f=actions[b.dataset.a]; if(f) f(b.dataset.v); });
+document.addEventListener('input',e=>{ const t=e.target, d=t.dataset;
+  if(d.setF){ const [xi,si,k]=d.setF.split('.'); S.active.exercises[+xi].sets[+si][k]=t.value.replace(',','.'); save(); }
+  else if(d.exNote!==undefined){ S.active.exercises[+d.exNote].note=t.value; save(); }
+  else if(d.active==='name'){ S.active.name=t.value; save(); }
+  else if(d.routineName){ S.routines.find(x=>x.id===d.routineName).name=t.value; save(); }
+  else if(d.set){ S.settings[d.set]= d.set==='rest'? +t.value : t.value; save(); }
+});
+document.addEventListener('change',e=>{ if(e.target.dataset.set==='unit') render(); });
+
+setInterval(()=>{
+  if(S.active) document.querySelectorAll('[data-live="elapsed"]').forEach(el=>el.textContent=fmtDur(Date.now()-S.active.start));
+  if(restEnd){ const left=(restEnd-Date.now())/1000; if(left<=0){ restEnd=0; beep(); toast('Masa rehat tamat!'); render(); }
+    else document.querySelectorAll('[data-live="rest"]').forEach(el=>el.textContent=fmtClock(left)); }
+},500);
+
+if(S.active) ui.view='active';
+render();
+</script>
